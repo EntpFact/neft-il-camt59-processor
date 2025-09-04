@@ -1,6 +1,10 @@
 package com.hdfcbank.camt59.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hdfcbank.camt59.exception.NILException;
+import com.hdfcbank.camt59.model.ReqPayload;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -27,6 +31,9 @@ import java.math.BigDecimal;
 @Component
 public class NILRouterCommonUtility {
 
+    @Autowired
+    ObjectMapper mapper;
+
     public String getBizMsgIdr(Document originalDoc) throws XPathExpressionException {
         XPath xpath = XPathFactory.newInstance().newXPath();
         Node msgIdNode = (Node) xpath.evaluate("//*[local-name()='AppHdr']/*[local-name()='BizMsgIdr']", originalDoc, XPathConstants.NODE);
@@ -42,6 +49,17 @@ public class NILRouterCommonUtility {
 
     }
 
+    public ReqPayload convertToMap(String request) {
+        try {
+            if (request == null || request.trim().isEmpty()) {
+                return null;
+            }
+            return mapper.readValue(request,  ReqPayload.class);
+        } catch (Exception e) {
+            log.error("Failed to convert request string to map", e);
+            throw new NILException("Invalid request format. Expecting JSON object.", e);
+        }
+    }
 
     public BigDecimal getTotalAmount(Document originalDoc) throws XPathExpressionException {
         XPath xpath = XPathFactory.newInstance().newXPath();

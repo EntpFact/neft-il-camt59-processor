@@ -30,6 +30,8 @@ public class ProcessController {
     @Autowired
     Camt59XmlProcessor camt59XmlProcessor;
 
+    @Autowired
+    NILRouterCommonUtility nilRouterCommonUtility;
     @CrossOrigin
     @GetMapping(path = "/healthz")
     public ResponseEntity<?> healthz() {
@@ -45,30 +47,26 @@ public class ProcessController {
 
 
 
-//
     @CrossOrigin
     @PostMapping("/process")
-    public Mono<ResponseEntity<Response>> process(@RequestBody ReqPayload request) throws JsonProcessingException {
-
-        log.info("....Processing Started.... ");
-
+    public Mono<ResponseEntity<Response>> process(@RequestBody String request) throws JsonProcessingException {
+        log.info("....CAMT59 Processing Started.... ");
         return Mono.fromCallable(() -> {
             try {
-
-                camt59XmlProcessor.processXML(request);
-
+                ReqPayload requestMap = nilRouterCommonUtility.convertToMap(request);
+                if(!camt59XmlProcessor.validateRequest(requestMap)){
+                    camt59XmlProcessor.processXML(requestMap);
+                }
                 return ResponseEntity.ok(new Response("SUCCESS", "Message Processed."));
             } catch (Exception ex) {
                 log.error("Failed in consuming the message: {}", ex);
-
                 throw new NILException("Failed in consuming the message", ex);
             } finally {
-                log.info("....Processing Completed.... ");
+                log.info("....CAMT59 Processing Completed.... ");
             }
         }).onErrorResume(ex -> {
             return Mono.just(new ResponseEntity<>(new Response("ERROR", "Message Processing Failed"), HttpStatus.INTERNAL_SERVER_ERROR));
         });
     }
-
 
 }
