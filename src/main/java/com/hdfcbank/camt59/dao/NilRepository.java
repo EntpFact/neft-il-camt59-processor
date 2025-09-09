@@ -80,33 +80,33 @@ public class NilRepository {
         namedParameterJdbcTemplate.update(sql, params);
 
     }
-
-    public MsgEventTracker findByMsgId(String msgId) {
-        String sql = "SELECT * FROM network_il.msg_event_tracker WHERE msg_id = :msgId";
-
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("msgId", msgId);
-
-        List<MsgEventTracker> result = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            MsgEventTracker tracker = new MsgEventTracker();
-            tracker.setMsgId(rs.getString("msg_id"));
-            tracker.setSource(rs.getString("source"));
-            tracker.setTarget(rs.getString("target"));
-            tracker.setFlowType(rs.getString("flow_type"));
-            tracker.setMsgType(rs.getString("msg_type"));
-            tracker.setOrgnlReq(rs.getString("original_req"));
-            tracker.setOrgnlReqCount(rs.getInt("original_req_count"));
-            tracker.setConsolidateAmt(rs.getBigDecimal("consolidate_amt"));
-            tracker.setIntermediateReq(rs.getString("intermediate_req"));
-            tracker.setIntermediateCount(rs.getInt("intemdiate_count"));
-            tracker.setStatus(rs.getString("status"));
-            tracker.setCreatedTime(rs.getObject("created_time", LocalDateTime.class));
-            tracker.setModifiedTimestamp(rs.getObject("modified_timestamp", LocalDateTime.class));
-            return tracker;
-        });
-
-        return result.isEmpty() ? null : result.get(0);
-    }
+//
+//    public MsgEventTracker findByMsgId(String msgId) {
+//        String sql = "SELECT * FROM network_il.msg_event_tracker WHERE msg_id = :msgId";
+//
+//        MapSqlParameterSource params = new MapSqlParameterSource();
+//        params.addValue("msgId", msgId);
+//
+//        List<MsgEventTracker> result = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+//            MsgEventTracker tracker = new MsgEventTracker();
+//            tracker.setMsgId(rs.getString("msg_id"));
+//            tracker.setSource(rs.getString("source"));
+//            tracker.setTarget(rs.getString("target"));
+//            tracker.setFlowType(rs.getString("flow_type"));
+//            tracker.setMsgType(rs.getString("msg_type"));
+//            tracker.setOrgnlReq(rs.getString("original_req"));
+//            tracker.setOrgnlReqCount(rs.getInt("original_req_count"));
+//            tracker.setConsolidateAmt(rs.getBigDecimal("consolidate_amt"));
+//            tracker.setIntermediateReq(rs.getString("intermediate_req"));
+//            tracker.setIntermediateCount(rs.getInt("intemdiate_count"));
+//            tracker.setStatus(rs.getString("status"));
+//            tracker.setCreatedTime(rs.getObject("created_time", LocalDateTime.class));
+//            tracker.setModifiedTimestamp(rs.getObject("modified_timestamp", LocalDateTime.class));
+//            return tracker;
+//        });
+//
+//        return result.isEmpty() ? null : result.get(0);
+//    }
 //
 //    public void saveDuplicateEntry(MsgEventTracker tracker) {
 //        String selectSql = "SELECT MAX(version) FROM network_il.msg_dedup_tracker " +

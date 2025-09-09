@@ -217,7 +217,7 @@ public class Camt59XmlProcessor {
         }
         return -1;
     }
-    private static Document filterOrgnlItmAndSts(Document document, int minDigit, int maxDigit) throws Exception {
+    public static Document filterOrgnlItmAndSts(Document document, int minDigit, int maxDigit) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         Document newDoc = factory.newDocumentBuilder().newDocument();

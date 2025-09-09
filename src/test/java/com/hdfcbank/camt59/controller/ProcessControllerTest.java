@@ -13,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,14 +30,14 @@ class ProcessControllerTest {
     @Mock
     private NILRouterCommonUtility nilRouterCommonUtility;
 
-    private ReqPayload mockReqPayload;
+
+    private ReqPayload mockPayload;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockReqPayload = new ReqPayload(); // create mock request payload
+        mockPayload = new ReqPayload();
     }
-
     @Test
     void testHealthz() {
         ResponseEntity<?> response = processController.healthz();
@@ -55,7 +56,7 @@ class ProcessControllerTest {
     void testProcess_Success() throws Exception {
         String request = "{\"data\":\"test\"}";
 
-        when(nilRouterCommonUtility.convertToMap(request)).thenReturn(mockReqPayload);
+        when(nilRouterCommonUtility.convertToMap(request)).thenReturn(mockPayload);
         when(camt59XmlProcessor.validateRequest(any(ReqPayload.class))).thenReturn(false);
         doNothing().when(camt59XmlProcessor).processXML(any(ReqPayload.class));
 
@@ -63,6 +64,85 @@ class ProcessControllerTest {
 
 
 //        verify(camt59XmlProcessor, times(1)).processXML(any(ReqPayload.class));
+    }
+
+    @Test
+    void testProcess_Success_WhenValidationFailsAndProcessCalled() throws Exception {
+        String requestJson = "{ \"sample\": \"data\" }";
+
+        when(nilRouterCommonUtility.convertToMap(requestJson)).thenReturn(mockPayload);
+        when(camt59XmlProcessor.validateRequest(mockPayload)).thenReturn(false);
+        doNothing().when(camt59XmlProcessor).processXML(mockPayload);
+
+        Mono<ResponseEntity<Response>> result = processController.process(requestJson);
+
+        StepVerifier.create(result)
+                .assertNext(response -> {
+//                    assertEquals(200, response.getStatusCode().value());
+                    assertEquals("SUCCESS", response.getBody().getStatus());
+                    assertEquals("Message Processed.", response.getBody().getMessage());
+                })
+                .verifyComplete();
+
+        verify(camt59XmlProcessor, times(1)).processXML(mockPayload);
+    }
+
+    @Test
+    void testProcess_Success_WhenValidationTrueAndProcessSkipped() throws Exception {
+        String requestJson = "{ \"sample\": \"data\" }";
+
+        when(nilRouterCommonUtility.convertToMap(requestJson)).thenReturn(mockPayload);
+        when(camt59XmlProcessor.validateRequest(mockPayload)).thenReturn(true);
+
+        Mono<ResponseEntity<Response>> result = processController.process(requestJson);
+
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertEquals(200, response.getStatusCodeValue());
+                    assertEquals("SUCCESS", response.getBody().getStatus());
+                    assertEquals("Message Processed.", response.getBody().getMessage());
+                })
+                .verifyComplete();
+
+        verify(camt59XmlProcessor, never()).processXML(any());
+    }
+
+    @Test
+    void testProcess_Error_WhenProcessXMLThrowsException() throws Exception {
+        String requestJson = "{ \"sample\": \"data\" }";
+
+        when(nilRouterCommonUtility.convertToMap(requestJson)).thenReturn(mockPayload);
+        when(camt59XmlProcessor.validateRequest(mockPayload)).thenReturn(false);
+        doThrow(new RuntimeException("Processing failed")).when(camt59XmlProcessor).processXML(mockPayload);
+
+        Mono<ResponseEntity<Response>> result = processController.process(requestJson);
+
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertEquals(500, response.getStatusCodeValue());
+                    assertEquals("ERROR", response.getBody().getStatus());
+                    assertEquals("Message Processing Failed", response.getBody().getMessage());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void testProcess_Error_WhenConvertToMapThrowsException() throws Exception {
+        String requestJson = "{ \"sample\": \"data\" }";
+
+        when(nilRouterCommonUtility.convertToMap(requestJson)).thenThrow(new RuntimeException("Invalid JSON"));
+
+        Mono<ResponseEntity<Response>> result = processController.process(requestJson);
+
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertEquals(500, response.getStatusCodeValue());
+                    assertEquals("ERROR", response.getBody().getStatus());
+                    assertEquals("Message Processing Failed", response.getBody().getMessage());
+                })
+                .verifyComplete();
+
+        verify(camt59XmlProcessor, never()).processXML(any());
     }
 
 }

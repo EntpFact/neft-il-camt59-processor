@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.hdfcbank"})
+@ComponentScan(basePackages = {"com.hdfcbank.camt59"})
 public class Camt59ProcessorApplication {
 
 	public static void main(String[] args) {
