@@ -24,6 +24,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.hdfcbank:message-connect:0.0.1'
 	implementation 'io.dapr:dapr-sdk:1.13.2'
+	implementation 'org.postgresql:postgresql:42.7.3'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

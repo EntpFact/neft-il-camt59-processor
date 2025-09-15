@@ -1,5 +1,6 @@
 package com.hdfcbank.camt59.dao;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hdfcbank.camt59.model.MsgEventTracker;
 import com.hdfcbank.camt59.model.TransactionAudit;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.*;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -53,7 +55,7 @@ class NilRepositoryTest {
     }
 
     @Test
-    void testSaveDataInMsgEventTracker() {
+    void testSaveDataInMsgEventTracker() throws SQLException, JsonProcessingException {
         MsgEventTracker tracker = new MsgEventTracker();
         tracker.setMsgId("MSG123");
         tracker.setSource("SRC");

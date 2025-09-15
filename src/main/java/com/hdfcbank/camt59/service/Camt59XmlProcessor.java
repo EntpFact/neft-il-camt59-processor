@@ -102,11 +102,11 @@ public class Camt59XmlProcessor {
                     .collect(Collectors.toList());
 
             if (targets.contains("DISPATCHED_FC")) {
-                handleTarget(document, xml, camt59Fields, "FC", 0, 4, consolidateAmountFC,
+                handleTarget(payload,document, xml, camt59Fields, "FC", 0, 4, consolidateAmountFC,
                         batchCreationDate, batchCreationTimeStamp, invalidReq, prefix, flowType, fcTopic);
             }
             if (targets.contains("DISPATCHED_EPH")) {
-                handleTarget(document, xml, camt59Fields, "EPH", 5, 9, consolidateAmountEPH,
+                handleTarget(payload,document, xml, camt59Fields, "EPH", 5, 9, consolidateAmountEPH,
                         batchCreationDate, batchCreationTimeStamp, invalidReq, prefix, flowType, ephTopic);
             }
 
@@ -135,7 +135,7 @@ public class Camt59XmlProcessor {
         }
     }
 
-    private void handleTarget(Document document, String xml, List<Camt59Fields> camt59Fields,
+    private void handleTarget(ReqPayload payload,Document document, String xml, List<Camt59Fields> camt59Fields,
                               String target, int minDigit, int maxDigit, double consolidateAmount,
                               LocalDate batchDate, LocalDateTime batchTime, boolean invalidReq,
                               String prefix, String flowType, String topic) throws Exception {
@@ -156,6 +156,7 @@ public class Camt59XmlProcessor {
         tracker.setBatchCreationDate(batchDate);
         tracker.setInvalidPayload(invalidReq);
         tracker.setConsolidateAmt(BigDecimal.valueOf(consolidateAmount));
+        tracker.setTransformedJsonReq(payload);
         tracker.setIntermediateReq(prefix + outputXml);
 
         long count = camt59Fields.stream()

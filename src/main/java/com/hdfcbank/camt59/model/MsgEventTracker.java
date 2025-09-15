@@ -23,6 +23,7 @@ public class MsgEventTracker {
     private String orgnlReq;
     private Integer orgnlReqCount;
     private BigDecimal consolidateAmt;
+    private  ReqPayload transformedJsonReq;
     private String intermediateReq;
     private Integer intermediateCount;
     private String status;
