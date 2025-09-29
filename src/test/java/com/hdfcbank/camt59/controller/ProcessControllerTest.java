@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -54,7 +57,9 @@ class ProcessControllerTest {
 
     @Test
     void testProcess_Success() throws Exception {
-        String request = "{\"data\":\"test\"}";
+        String request = "{ \"sample\": \"data\" }";
+        String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
+        String requestJson = "{\"data_base64\":\"" + base64 + "\"}";
 
         when(nilRouterCommonUtility.convertToMap(request)).thenReturn(mockPayload);
         when(camt59XmlProcessor.validateRequest(any(ReqPayload.class))).thenReturn(false);
@@ -66,9 +71,10 @@ class ProcessControllerTest {
 //        verify(camt59XmlProcessor, times(1)).processXML(any(ReqPayload.class));
     }
 
-    @Test
     void testProcess_Success_WhenValidationFailsAndProcessCalled() throws Exception {
-        String requestJson = "{ \"sample\": \"data\" }";
+        String request = "{ \"sample\": \"data\" }";
+        String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
+        String requestJson = "{\"data_base64\":\"" + base64 + "\"}";
 
         when(nilRouterCommonUtility.convertToMap(requestJson)).thenReturn(mockPayload);
         when(camt59XmlProcessor.validateRequest(mockPayload)).thenReturn(false);
@@ -89,7 +95,9 @@ class ProcessControllerTest {
 
     @Test
     void testProcess_Success_WhenValidationTrueAndProcessSkipped() throws Exception {
-        String requestJson = "{ \"sample\": \"data\" }";
+        String request = "{ \"sample\": \"data\" }";
+        String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
+        String requestJson = "{\"data_base64\":\"" + base64 + "\"}";
 
         when(nilRouterCommonUtility.convertToMap(requestJson)).thenReturn(mockPayload);
         when(camt59XmlProcessor.validateRequest(mockPayload)).thenReturn(true);
@@ -109,7 +117,9 @@ class ProcessControllerTest {
 
     @Test
     void testProcess_Error_WhenProcessXMLThrowsException() throws Exception {
-        String requestJson = "{ \"sample\": \"data\" }";
+        String request = "{ \"sample\": \"data\" }";
+        String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
+        String requestJson = "{\"data_base64\":\"" + base64 + "\"}";
 
         when(nilRouterCommonUtility.convertToMap(requestJson)).thenReturn(mockPayload);
         when(camt59XmlProcessor.validateRequest(mockPayload)).thenReturn(false);
@@ -128,7 +138,9 @@ class ProcessControllerTest {
 
     @Test
     void testProcess_Error_WhenConvertToMapThrowsException() throws Exception {
-        String requestJson = "{ \"sample\": \"data\" }";
+        String request = "{ \"sample\": \"data\" }";
+        String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
+        String requestJson = "{\"data_base64\":\"" + base64 + "\"}";
 
         when(nilRouterCommonUtility.convertToMap(requestJson)).thenThrow(new RuntimeException("Invalid JSON"));
 

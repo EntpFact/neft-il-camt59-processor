@@ -167,7 +167,7 @@ public class Camt59XmlProcessor {
         tracker.setOrgnlReqCount(camt59Fields.size());
 
         dao.saveDataInMsgEventTracker(tracker);
-        kafkaUtils.publishToResponseTopic(outputXml, topic);
+        kafkaUtils.publishToResponseTopic(outputXml, topic,tracker.getMsgId());
     }
 
     private double sumAmounts(List<Camt59Fields> fields, String swtch) {

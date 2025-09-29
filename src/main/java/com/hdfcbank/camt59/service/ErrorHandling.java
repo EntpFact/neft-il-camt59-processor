@@ -27,7 +27,7 @@ public class ErrorHandling {
     public void handleInvalidPayload(ReqPayload reqPayload) throws JsonProcessingException {
         reqPayload.getHeader().setTarget(errortopic);
         String reqPayloadString = objectMapper.writeValueAsString(reqPayload);
-        kafkaUtils.publishToResponseTopic(reqPayloadString,dispatchertopic);
+        kafkaUtils.publishToResponseTopic(reqPayloadString,dispatchertopic,reqPayload.getHeader().getMsgId());
 
     }
 }

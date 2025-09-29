@@ -11,10 +11,10 @@ logging:
 ######################################
 spring:
   datasource:
-    url: ${datasourceUrl:jdbc:postgresql://34.135.239.235:5432/postgresdb}
-    username: ${dbusername:admin}
-    password: ${password:test123}
-    driver-class-name: ${diverclassname:org.postgresql.Driver}
+    url: ${DATASOURCE_URL:jdbc:postgresql://34.135.239.235:5432/postgresdb}
+    username: ${DATASOURCE_USERNAME:admin}
+    password: ${DATASOURCE_PWD:test123}
+    driver-class-name: ${DATASOURCE_DRIVERCLASS:org.postgresql.Driver}
 
 
 routing:

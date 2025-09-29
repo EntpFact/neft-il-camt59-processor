@@ -32,7 +32,7 @@ class KafkaUtilsTest {
         when(daprProducer.invokeDaprPublishEvent(any(PubSubOptions.class)))
                 .thenReturn(Mono.just("Published"));
 
-        kafkaUtils.publishToResponseTopic(message, topic);
+        kafkaUtils.publishToResponseTopic(message, topic,"msg123");
 
 //        verify(daprProducer, times(1)).invokeDaprPublishEvent(argThat(options ->
 //                options.getRequestData().equals(message) &&
@@ -49,7 +49,7 @@ class KafkaUtilsTest {
         when(daprProducer.invokeDaprPublishEvent(any(PubSubOptions.class)))
                 .thenReturn(Mono.error(new RuntimeException("Kafka error")));
 
-        kafkaUtils.publishToResponseTopic(message, topic);
+        kafkaUtils.publishToResponseTopic(message, topic,"ms1234");
 
 //        verify(daprProducer, times(1)).invokeDaprPublishEvent(any(PubSubOptions.class));
     }

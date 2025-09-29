@@ -7,7 +7,7 @@ class ConstantsTest {
 
     @Test
     void testKafkaResponseTopicDaprBinding() {
-        assertEquals("kafka-nilrouter-pubsub-component", Constants.KAFKA_RESPONSE_TOPIC_DAPR_BINDING);
+        assertEquals("kafka-camt59processor-pubsub-component", Constants.KAFKA_RESPONSE_TOPIC_DAPR_BINDING);
     }
 
     @Test

@@ -11,6 +11,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import static org.mockito.Mockito.*;
 
 class ErrorHandlingTest {
@@ -53,15 +56,19 @@ class ErrorHandlingTest {
         }
 
         header = new Header();
+        header.setMsgId("msg1234");
         reqPayload = new ReqPayload();
         reqPayload.setHeader(header);
     }
 
     @Test
     void testHandleInvalidPayload_Success() throws Exception {
-        String serializedPayload = "{\"header\":{\"target\":\"error-topic\"}}";
 
-        when(objectMapper.writeValueAsString(reqPayload)).thenReturn(serializedPayload);
+        String request = "{\"header\":{\"target\":\"error-topic\" ,\"msgId\":\"msg123\"}}";
+        String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
+//        String serializedPayload = "{\"data_base64\":\"" + base64 + "\"}";
+
+        when(objectMapper.writeValueAsString(reqPayload)).thenReturn(request);
 
         errorHandling.handleInvalidPayload(reqPayload);
 
@@ -72,7 +79,7 @@ class ErrorHandlingTest {
         verify(objectMapper, times(1)).writeValueAsString(reqPayload);
 
         // Verify Kafka publish is called
-        verify(kafkaUtils, times(1)).publishToResponseTopic(serializedPayload, dispatchertopic);
+        verify(kafkaUtils, times(1)).publishToResponseTopic(request, dispatchertopic,"msg1234");
     }
 
     @Test
@@ -86,6 +93,6 @@ class ErrorHandlingTest {
         }
 
         // Verify KafkaUtils not called
-        verify(kafkaUtils, never()).publishToResponseTopic(anyString(), anyString());
+        verify(kafkaUtils, never()).publishToResponseTopic(anyString(), anyString(),anyString());
     }
 }
