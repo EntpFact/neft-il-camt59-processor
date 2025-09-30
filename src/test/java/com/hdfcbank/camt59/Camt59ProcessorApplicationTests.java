@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class Camt59ProcessorApplicationTests {
-//	@Test
+	@Test
 	void contextLoads() {
 	}
 
