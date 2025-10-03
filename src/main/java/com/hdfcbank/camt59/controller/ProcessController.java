@@ -70,8 +70,8 @@ public class ProcessController {
     }
 
     @CrossOrigin
-    @PostMapping("/sendToKafka")
-    public Mono<ResponseEntity<Response>> sendToKafka(@RequestBody String request) throws JsonProcessingException {
+    @PostMapping("/sendToProcessor")
+    public Mono<ResponseEntity<Response>> sendToProcessor(@RequestBody String request) throws JsonProcessingException {
         log.info("....CAMT59 Processing Started.... ");
         return Mono.fromCallable(() -> {
             try {

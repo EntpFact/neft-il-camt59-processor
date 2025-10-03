@@ -48,55 +48,113 @@ public class NilRepository {
     }
 
     public void saveDataInMsgEventTracker(MsgEventTracker msgEventTracker) throws JsonProcessingException, SQLException {
-        String sql = "INSERT INTO network_il.msg_event_tracker\n" +
-                "(msg_id, \"source\", target, batch_id, flow_type, msg_type, original_req, invalid_msg, \n" +
-                " replay_count, original_req_count, consolidate_amt,transformed_json_req, intermediate_req, intemdiate_count, \n" +
-                " status, batch_creation_date, batch_timestamp, created_time, modified_timestamp, \"version\")\n" +
-                "VALUES" +
-                " (:msg_id, :source, :target,:batch_id, :flow_type, :msg_type, :original_req, :invalid_msg," +
-                " :replay_count, :original_req_count, :consolidate_amt,:transformed_json_req,  :intermediate_req, :intemdiate_count," +
-                " :status,:batch_creation_date,:batch_timestamp, :created_time, :modified_timestamp,:version )";
+        String selectSql = "SELECT MAX(version) FROM network_il.msg_event_tracker " +
+                "WHERE msg_id = :msgId AND status= :status ";
 
+        MapSqlParameterSource baseParams = new MapSqlParameterSource();
+        baseParams.addValue("msgId", msgEventTracker.getMsgId());
+
+        baseParams.addValue("status", "CAPTURED");
+        BigDecimal currentVersion = namedParameterJdbcTemplate.queryForObject(
+                selectSql, baseParams, BigDecimal.class);
         LocalDateTime timestamp = LocalDateTime.now();
 
+        if (currentVersion != null) {
+            // Row exists → update version
+            BigDecimal nextVersion = currentVersion.add(BigDecimal.ONE);
+            String updateSql = "UPDATE network_il.msg_event_tracker SET " +
+                    "flow_type = :flowType, msg_type = :msgType,batch_id=:batch_id,target=:target, transformed_json_req = :transformed_json_req, " +
+                    "version = :version, intermediate_req=:intermediate_req ,intemdiate_count=:intemdiate_count,status=:status," +
+                    "replay_count =:replay_count, modified_timestamp = :modified_timestamp " +
+                    "WHERE msg_id = :msgId AND status= 'CAPTURED'";
 
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("msg_id", msgEventTracker.getMsgId());
-        params.addValue("source", msgEventTracker.getSource());
-        params.addValue("target", msgEventTracker.getTarget());
-        params.addValue("flow_type", msgEventTracker.getFlowType());
-        params.addValue("msg_type", msgEventTracker.getMsgType());
-        params.addValue("original_req", msgEventTracker.getOrgnlReq());
-        params.addValue("original_req_count", msgEventTracker.getOrgnlReqCount());
-        params.addValue("batch_id", " ");
-        params.addValue("version",1);
-        params.addValue("invalid_msg",msgEventTracker.isInvalidPayload());
-        params.addValue("replay_count",0);
-        params.addValue("consolidate_amt", msgEventTracker.getConsolidateAmt());
-        params.addValue("intermediate_req", msgEventTracker.getIntermediateReq());
-        params.addValue("intemdiate_count", msgEventTracker.getIntermediateCount());
-        params.addValue("status", msgEventTracker.getStatus());
-        params.addValue("batch_creation_date", msgEventTracker.getBatchCreationDate());
-        params.addValue("batch_timestamp", msgEventTracker.getBatchCreationTime());
-        params.addValue("version",1);
-        params.addValue("created_time", timestamp);
-        params.addValue("modified_timestamp", timestamp);
 
-        ObjectMapper objectMapper = new ObjectMapper();
+            MapSqlParameterSource updateParams = new MapSqlParameterSource();
+            updateParams.addValue("target", msgEventTracker.getTarget());
+            updateParams.addValue("msgId", msgEventTracker.getMsgId());
+
+            updateParams.addValue("flowType", msgEventTracker.getFlowType());
+            updateParams.addValue("msgType", msgEventTracker.getMsgType());
+            updateParams.addValue("batch_id", msgEventTracker.getBatchId());
+            updateParams.addValue("invalid_msg", msgEventTracker.isInvalidPayload());
+            updateParams.addValue("transformed_json_req", msgEventTracker.getTransformedJsonReq());
+            updateParams.addValue("replay_count", 0);
+//            updateParams.addValue("consolidate_amt", msgEventTracker.getConsolidateAmt());
+            updateParams.addValue("intermediate_req", msgEventTracker.getIntermediateReq());
+            updateParams.addValue("intemdiate_count", msgEventTracker.getIntermediateCount());
+            updateParams.addValue("status", msgEventTracker.getStatus());
+//            updateParams.addValue("batch_creation_date", msgEventTracker.getBatchCreationDate());
+//            updateParams.addValue("batch_timestamp", msgEventTracker.getBatchCreationTime());
+            updateParams.addValue("version", nextVersion);
+
+            updateParams.addValue("modified_timestamp", timestamp);
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // 1. Convert the ReqPayload object to JSON string
+            String jsonString = objectMapper.writeValueAsString(msgEventTracker.getTransformedJsonReq());
+
+            // 2. Wrap the string as a PGobject
+            PGobject jsonObject = new PGobject();
+            jsonObject.setType("json"); // or "jsonb" if your column is JSONB
+            jsonObject.setValue(jsonString);
+            // 3. Add to parameters
+            updateParams.addValue("transformed_json_req", jsonObject);
+
+            namedParameterJdbcTemplate.update(updateSql, updateParams);
+
+
+        }else {
+
+
+            String sql = "INSERT INTO network_il.msg_event_tracker\n" +
+                    "(msg_id, \"source\", target, batch_id, flow_type, msg_type, original_req, invalid_msg, \n" +
+                    " replay_count, original_req_count, consolidate_amt,transformed_json_req, intermediate_req, intemdiate_count, \n" +
+                    " status, batch_creation_date, batch_timestamp, created_time, modified_timestamp, \"version\")\n" +
+                    "VALUES" +
+                    " (:msg_id, :source, :target,:batch_id, :flow_type, :msg_type, :original_req, :invalid_msg," +
+                    " :replay_count, :original_req_count, :consolidate_amt,:transformed_json_req,  :intermediate_req, :intemdiate_count," +
+                    " :status,:batch_creation_date,:batch_timestamp, :created_time, :modified_timestamp,:version )";
+
+
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("msg_id", msgEventTracker.getMsgId());
+            params.addValue("source", msgEventTracker.getSource());
+            params.addValue("target", msgEventTracker.getTarget());
+            params.addValue("flow_type", msgEventTracker.getFlowType());
+            params.addValue("msg_type", msgEventTracker.getMsgType());
+            params.addValue("original_req", msgEventTracker.getOrgnlReq());
+            params.addValue("original_req_count", msgEventTracker.getOrgnlReqCount());
+            params.addValue("batch_id", " ");
+            params.addValue("version", 1);
+            params.addValue("invalid_msg", msgEventTracker.isInvalidPayload());
+            params.addValue("replay_count", 0);
+            params.addValue("consolidate_amt", msgEventTracker.getConsolidateAmt());
+            params.addValue("intermediate_req", msgEventTracker.getIntermediateReq());
+            params.addValue("intemdiate_count", msgEventTracker.getIntermediateCount());
+            params.addValue("status", msgEventTracker.getStatus());
+            params.addValue("batch_creation_date", msgEventTracker.getBatchCreationDate());
+            params.addValue("batch_timestamp", msgEventTracker.getBatchCreationTime());
+            params.addValue("version", 1);
+            params.addValue("created_time", timestamp);
+            params.addValue("modified_timestamp", timestamp);
+
+            ObjectMapper objectMapper = new ObjectMapper();
 
 //        try {
-        // 1. Convert the ReqPayload object to JSON string
-        String jsonString = objectMapper.writeValueAsString(msgEventTracker.getTransformedJsonReq());
+            // 1. Convert the ReqPayload object to JSON string
+            String jsonString = objectMapper.writeValueAsString(msgEventTracker.getTransformedJsonReq());
 
-        // 2. Wrap the string as a PGobject
-        PGobject jsonObject = new PGobject();
-        jsonObject.setType("json"); // or "jsonb" if your column is JSONB
-        jsonObject.setValue(jsonString);
+            // 2. Wrap the string as a PGobject
+            PGobject jsonObject = new PGobject();
+            jsonObject.setType("json"); // or "jsonb" if your column is JSONB
+            jsonObject.setValue(jsonString);
 //            params.addValue("transformed_json_req",objectMapper.writeValueAsString(msgEventTracker.getTransformedJsonReq()));
-        // 3. Add to parameters
-        params.addValue("transformed_json_req", jsonObject);
+            // 3. Add to parameters
+            params.addValue("transformed_json_req", jsonObject);
 
-        namedParameterJdbcTemplate.update(sql, params);
+            namedParameterJdbcTemplate.update(sql, params);
+
+        }
 
     }
 //

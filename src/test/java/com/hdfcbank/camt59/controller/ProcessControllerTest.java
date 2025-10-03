@@ -1,6 +1,5 @@
 package com.hdfcbank.camt59.controller;
 
-import com.hdfcbank.camt59.exception.NILException;
 import com.hdfcbank.camt59.model.ReqPayload;
 import com.hdfcbank.camt59.model.Response;
 import com.hdfcbank.camt59.service.Camt59XmlProcessor;

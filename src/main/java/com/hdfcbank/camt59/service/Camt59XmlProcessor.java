@@ -41,12 +41,6 @@ public class Camt59XmlProcessor {
     @Value("${topic.sfmstopic}")
     private String sfmsTopic;
 
-    @Value("${topic.fctopic}")
-    private String fcTopic;
-
-    @Value("${topic.ephtopic}")
-    private String ephTopic;
-
     @Value("${topic.msgeventtrackertopic}")
     private String msgEventTrackerTopic;
 
@@ -107,11 +101,11 @@ public class Camt59XmlProcessor {
 
             if (targets.contains("DISPATCHED_FC")) {
                 handleTarget(payload,document, xml, camt59Fields, "FC", 0, 4, consolidateAmountFC,
-                        batchCreationDate, batchCreationTimeStamp, invalidReq, prefix, flowType, fcTopic);
+                        batchCreationDate, batchCreationTimeStamp, invalidReq, prefix, flowType);
             }
             if (targets.contains("DISPATCHED_EPH")) {
                 handleTarget(payload,document, xml, camt59Fields, "EPH", 5, 9, consolidateAmountEPH,
-                        batchCreationDate, batchCreationTimeStamp, invalidReq, prefix, flowType, ephTopic);
+                        batchCreationDate, batchCreationTimeStamp, invalidReq, prefix, flowType);
             }
 
             List<TransactionAudit> transactionAudits =
@@ -142,7 +136,7 @@ public class Camt59XmlProcessor {
     private void handleTarget(ReqPayload payload,Document document, String xml, List<Camt59Fields> camt59Fields,
                               String target, int minDigit, int maxDigit, double consolidateAmount,
                               LocalDate batchDate, LocalDateTime batchTime, boolean invalidReq,
-                              String prefix, String flowType, String topic) throws Exception {
+                              String prefix, String flowType) throws Exception {
 
         Document filteredDoc = filterOrgnlItmAndSts(document, minDigit, maxDigit);
         String outputXml = documentToXml(filteredDoc);
@@ -171,7 +165,7 @@ public class Camt59XmlProcessor {
         tracker.setOrgnlReqCount(camt59Fields.size());
 
         dao.saveDataInMsgEventTracker(tracker);
-        kafkaUtils.publishToResponseTopic(outputXml, topic,tracker.getMsgId());
+//        kafkaUtils.publishToResponseTopic(outputXml, topic,tracker.getMsgId());
     }
 
 
@@ -188,9 +182,11 @@ public class Camt59XmlProcessor {
         tracker.setMsgId(bizMsgIdr);
         tracker.setSource("SFMS");
         tracker.setBatchId(" ");
-        tracker.setTarget(requestMap.getHeader().getTarget());
+        tracker.setTarget("SENT_TO_DISPATCHER");
         tracker.setOrgnlReq(requestMap.getHeader().getPrefix() + requestMap.getBody().getPayload());
         tracker.setInvalidPayload(requestMap.getHeader().isInvalidPayload());
+        tracker.setTransformedJsonReq(requestMap);
+//        tracker.setStatus();
 
         dao.saveDataInMsgEventTracker(tracker);
 //        errorHandling.handleInvalidPayload(requestMap);

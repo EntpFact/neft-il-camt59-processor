@@ -17,7 +17,5 @@ spring:
 topic:
   dispatchertopic: ${DISPATCHERTOPIC:DISPATCHERTOPIC}
   errortopic: ${EPH:EPH}
-  fctopic: ${FCTOPIC:FCTOPIC}
-  ephtopic: ${EPHTOPIC:EPHTOPIC}
   msgeventtrackertopic: ${MSGTOPIC:MSGEVENTTRACKERTOPIC}
   sfmstopic: ${SFMSTOPIC:SFMSTOPIC}
