@@ -69,4 +69,30 @@ public class ProcessController {
         });
     }
 
+    @CrossOrigin
+    @PostMapping("/sendToKafka")
+    public Mono<ResponseEntity<Response>> sendToKafka(@RequestBody String request) throws JsonProcessingException {
+        log.info("....CAMT59 Processing Started.... ");
+        return Mono.fromCallable(() -> {
+            try {
+                ReqPayload requestMap = nilRouterCommonUtility.convertToMap(request);
+                if(!camt59XmlProcessor.validateRequest(requestMap)){
+                    camt59XmlProcessor.processXML(requestMap);
+                }else {
+
+                    camt59XmlProcessor.saveInvalidPayload(requestMap);
+                    return ResponseEntity.ok(new Response("BAD REQUEST","Invalid Request"));
+                }
+                return ResponseEntity.ok(new Response("SUCCESS", "Message sent to Kafka:"));
+            } catch (Exception ex) {
+                log.error("Failed in consuming the message: {}", ex);
+                throw new NILException("Failed in consuming the message", ex);
+            } finally {
+                log.info("....CAMT59 Processing Completed.... ");
+            }
+        }).onErrorResume(ex -> {
+            return Mono.just(new ResponseEntity<>(new Response("ERROR", "Error processing to Kafka:"), HttpStatus.INTERNAL_SERVER_ERROR));
+        });
+    }
+
 }

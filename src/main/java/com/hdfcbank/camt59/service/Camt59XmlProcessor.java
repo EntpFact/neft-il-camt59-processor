@@ -13,16 +13,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -168,6 +172,29 @@ public class Camt59XmlProcessor {
 
         dao.saveDataInMsgEventTracker(tracker);
         kafkaUtils.publishToResponseTopic(outputXml, topic,tracker.getMsgId());
+    }
+
+
+    public void saveInvalidPayload(ReqPayload requestMap) throws ParserConfigurationException, IOException, SAXException, XPathExpressionException, SQLException {
+
+        Document document = DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder()
+                .parse(new InputSource(new StringReader(requestMap.getBody().getPayload())));
+
+        XPath xpath = XPathFactory.newInstance().newXPath();
+
+        String bizMsgIdr =utilityMethods.getBizMsgIdr(document);
+        MsgEventTracker tracker = new MsgEventTracker();
+        tracker.setMsgId(bizMsgIdr);
+        tracker.setSource("SFMS");
+        tracker.setBatchId(" ");
+        tracker.setTarget(requestMap.getHeader().getTarget());
+        tracker.setOrgnlReq(requestMap.getHeader().getPrefix() + requestMap.getBody().getPayload());
+        tracker.setInvalidPayload(requestMap.getHeader().isInvalidPayload());
+
+        dao.saveDataInMsgEventTracker(tracker);
+//        errorHandling.handleInvalidPayload(requestMap);
+
     }
 
     private double sumAmounts(List<Camt59Fields> fields, String swtch) {
