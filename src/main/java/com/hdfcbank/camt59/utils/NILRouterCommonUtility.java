@@ -58,11 +58,12 @@ public class NILRouterCommonUtility {
                 return null;
             }
 
-            String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
-            String requestJson = "{\"data_base64\":\"" + base64 + "\"}";
-            JsonNode rootNode = objectMapper.readTree(requestJson);
+//            String base64 = Base64.getEncoder().encodeToString(request.getBytes(StandardCharsets.UTF_8));
+//            String requestJson = "{\"data_base64\":\"" + base64 + "\"}";
+            JsonNode rootNode = objectMapper.readTree(request);
             String base64Data = rootNode.get("data_base64").asText();
             String reqPayloadString = new String(Base64.getDecoder().decode(base64Data), StandardCharsets.UTF_8);
+            reqPayloadString=objectMapper.readValue(reqPayloadString, String.class);
             return objectMapper.readValue(reqPayloadString,  ReqPayload.class);
         } catch (Exception e) {
             log.error("Failed to convert request string to map", e);
